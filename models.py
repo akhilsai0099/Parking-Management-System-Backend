@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -9,7 +9,6 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(String, default="user")
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
@@ -25,12 +24,15 @@ class ParkingSpot(Base):
     is_occupied = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now())
 
+    __table_args__ = (UniqueConstraint('level', 'section', 'spot_number', name='unique_level_section_spot'),)
+
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
     id = Column(Integer, primary_key=True, index=True)
     license_plate = Column(String, unique=True, index=True)
     vehicle_type = Column(String)
+    owner_id = Column(Integer, ForeignKey('users.id'))
     owner_name = Column(String)
     contact_number = Column(String)
     created_at = Column(DateTime, default=datetime.now())
