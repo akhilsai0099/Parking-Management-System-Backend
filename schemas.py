@@ -30,6 +30,7 @@ class ParkingSpot(ParkingSpotBase):
 class VehicleBase(BaseModel):
     license_plate: str
     vehicle_type: str
+    owner_id: Optional[int] = None
     owner_name: str
     contact_number: str
 
@@ -38,18 +39,20 @@ class VehicleCreate(VehicleBase):
 
 class Vehicle(VehicleBase):
     id: int
-    created_at: datetime
+    license_plate: str
 
     class Config:
         orm_mode = True
 
 class ParkingSessionBase(BaseModel):
     vehicle_id: int
-    spot_id: int
+    spot_id: Optional[int] = None
     expected_exit_time: datetime
 
 class ParkingSessionCreate(ParkingSessionBase):
-    pass
+    vehicle_id: int
+    entry_time: datetime
+
 
 class ParkingSession(ParkingSessionBase):
     id: int
@@ -65,4 +68,4 @@ class ParkingSession(ParkingSessionBase):
 
 class Token(BaseModel):
     token: str
-    role: str
+    role: bool

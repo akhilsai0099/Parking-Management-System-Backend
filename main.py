@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.exceptions import HTTPException
+from fastapi.responses import JSONResponse 
 from sqlalchemy.orm import Session
-import models, crud, schemas
+import  crud, schemas
 from database import engine, SessionLocal, init_db
 from helpers.passwordHash import verify_password
 from jwtToken import create_access_token
+from middleware import get_current_user
 
 init_db()
 
@@ -18,6 +20,19 @@ def get_db():
         db.close()
 
 
+@app.middleware("http")
+async def authMiddleware(request: Request, call_next):
+    if request.url.path in ["/login/", "/register/"]:
+        return await call_next(request)
+    try:
+        curr_user = get_current_user(request.headers["Authorization"].split(" ")[1])
+    except HTTPException:
+        return JSONResponse(status_code=403, content={"message": "Unauthorized"})
+    if curr_user:
+        request.state.curr_user = curr_user
+        response = await call_next(request)
+    return response
+
 @app.post("/register/", response_model=schemas.UserCreate)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -30,8 +45,8 @@ def login(user: schemas.User, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if not db_user or verify_password(user.password, db_user.password) is False:
         raise HTTPException(status_code=400, detail="Invalid email or password")
-    token = create_access_token(data={"username": db_user.email})
-    return {"token": token, "role": db_user.role}
+    token = create_access_token(data={"email": db_user.email})
+    return {"token": token, "role": db_user.is_admin}
 
 @app.post("/parking_spots/", response_model=schemas.ParkingSpot)
 def create_parking_spot(parking_spot: schemas.ParkingSpotCreate, db: Session = Depends(get_db)):
@@ -42,12 +57,16 @@ def read_parking_spots(db: Session = Depends(get_db)):
     return crud.get_parking_spots(db=db)
 
 @app.post("/vehicles/", response_model=schemas.Vehicle)
-def create_vehicle(vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)):
-    return crud.create_vehicle(db=db, vehicle=vehicle)
+def create_vehicle(request:Request, vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)):
+    return crud.create_vehicle(request,db=db, vehicle=vehicle)
 
 @app.get("/vehicles/", response_model=list[schemas.Vehicle])
-def read_vehicles(db: Session = Depends(get_db)):
-    return crud.get_vehicles(db=db)
+def read_vehicles(request: Request, db: Session = Depends(get_db)):
+    return crud.get_vehicles(request,db=db)
+
+@app.get("/vehicles/", response_model=list[schemas.Vehicle])
+def delete_vehicle(request: Request,vehicle: schemas.Vehicle ,db: Session = Depends(get_db)):
+    return crud.delete_vehicle(request,db=db)
 
 @app.post("/parking_sessions/", response_model=schemas.ParkingSession)
 def create_parking_session(session: schemas.ParkingSessionCreate, db: Session = Depends(get_db)):
