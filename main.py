@@ -52,6 +52,14 @@ def login(user: schemas.User, db: Session = Depends(get_db)):
 def create_parking_spot(parking_spot: schemas.ParkingSpotCreate, db: Session = Depends(get_db)):
     return crud.create_parking_spot(db=db, parking_spot=parking_spot)
 
+@app.put("/parking_spots/{spot_id}")
+def update_parking_spot(spot_id: int, parking_spot: schemas.ParkingSpotCreate, db: Session = Depends(get_db)):
+    return crud.update_parking_spot(db=db, spot_id=spot_id, parking_spot=parking_spot)
+
+@app.delete("/parking_spots/{spot_id}")
+def delete_parking_spot(spot_id: int, db: Session = Depends(get_db)):
+    return crud.delete_parking_spot(db=db, spot_id=spot_id)
+
 @app.get("/parking_spots/", response_model=list[schemas.ParkingSpot])
 def read_parking_spots(db: Session = Depends(get_db)):
     return crud.get_parking_spots(db=db)
@@ -64,9 +72,13 @@ def create_vehicle(request:Request, vehicle: schemas.VehicleCreate, db: Session 
 def read_vehicles(request: Request, db: Session = Depends(get_db)):
     return crud.get_vehicles(request,db=db)
 
-@app.get("/vehicles/", response_model=list[schemas.Vehicle])
-def delete_vehicle(request: Request,vehicle: schemas.Vehicle ,db: Session = Depends(get_db)):
-    return crud.delete_vehicle(request,db=db)
+@app.put("/vehicles/{id}")
+def edit_vehicle(request: Request, id: int, vehicle: schemas.VehicleCreate ,db: Session = Depends(get_db)):
+    crud.update_vehicle(request, id=id, vehicle=vehicle ,db=db)
+    return JSONResponse(status_code=200, content={"message": "Vehicle updated"})
+@app.delete("/vehicles/{id}", response_model=list[schemas.Vehicle])
+def delete_vehicle(request: Request, id: int, db: Session = Depends(get_db)):
+    return crud.delete_vehicle(request, id=id, db=db)
 
 @app.post("/parking_sessions/", response_model=schemas.ParkingSession)
 def create_parking_session(session: schemas.ParkingSessionCreate, db: Session = Depends(get_db)):
