@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -23,11 +23,11 @@ class ParkingSpotCreate(ParkingSpotBase):
     pass
 
 class ParkingSpot(ParkingSpotBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime
 
-    class Config:
-        orm_mode = True
 
 class VehicleBase(BaseModel):
     license_plate: str
@@ -40,11 +40,11 @@ class VehicleCreate(VehicleBase):
     pass
 
 class Vehicle(VehicleBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     license_plate: str
 
-    class Config:
-        orm_mode = True
 
 class ParkingSessionBase(BaseModel):
     vehicle_id: int
@@ -57,6 +57,9 @@ class ParkingSessionCreate(ParkingSessionBase):
 
 
 class ParkingSession(ParkingSessionBase):
+    model_config = ConfigDict(from_attributes=True)
+
+
     id: int
     entry_time: datetime
     actual_exit_time: Optional[datetime] = None
@@ -64,8 +67,6 @@ class ParkingSession(ParkingSessionBase):
     payment_status: str
     created_at: datetime
 
-    class Config:
-        orm_mode = True
 
 
 class Token(BaseModel):
