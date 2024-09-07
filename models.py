@@ -22,6 +22,8 @@ class ParkingSpot(Base):
     spot_number = Column(Integer)
     vehicle_type = Column(String)
     is_occupied = Column(Boolean, default=False)
+    exit_distance = Column(Integer) 
+    short_term_only = Column(Boolean, default=False) 
     created_at = Column(DateTime, default=datetime.now())
 
     __table_args__ = (UniqueConstraint('level', 'section', 'spot_number', name='unique_level_section_spot'),)
@@ -48,6 +50,7 @@ class ParkingSession(Base):
     actual_exit_time = Column(DateTime, nullable=True)
     fee = Column(Integer, nullable=True)
     payment_status = Column(String, default="Pending")
+    created_at = Column(DateTime, default=datetime.now())
 
     vehicle = relationship("Vehicle")
     spot = relationship("ParkingSpot")

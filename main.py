@@ -80,7 +80,18 @@ def edit_vehicle(request: Request, id: int, vehicle: schemas.VehicleCreate ,db: 
 def delete_vehicle(request: Request, id: int, db: Session = Depends(get_db)):
     return crud.delete_vehicle(request, id=id, db=db)
 
-@app.post("/parking_sessions/", response_model=schemas.ParkingSession)
+@app.post("/parking_sessions/")
 def create_parking_session(session: schemas.ParkingSessionCreate, db: Session = Depends(get_db)):
-    return crud.create_parking_session(db=db, session=session)
+    try:
+        crud.create_parking_session(db=db, session=session)
+        return JSONResponse(status_code=200, content={"message": "Parking session created"})
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"message": str(e)})
 	
+@app.delete("/parking_sessions/{session_id}")
+def delete_parking_session(session_id: int, db: Session = Depends(get_db)):
+    return crud.delete_parking_session(db=db, session_id=session_id)
+
+@app.get("/parking_sessions/", response_model=list[schemas.ParkingSession])
+def get_parking_sessions(db: Session = Depends(get_db)):
+    return crud.get_parking_sessions(db=db)

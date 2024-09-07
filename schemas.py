@@ -15,6 +15,8 @@ class ParkingSpotBase(BaseModel):
     section: str
     spot_number: int
     vehicle_type: str
+    exit_distance: int
+    short_term_only: bool 
     is_occupied: bool
 
 class ParkingSpotCreate(ParkingSpotBase):

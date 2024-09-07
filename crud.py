@@ -39,7 +39,8 @@ def update_parking_spot(db: Session, spot_id: int, parking_spot: schemas.Parking
     if existing_spot and existing_spot.id != spot_id:
         raise HTTPException(status_code=400, detail="Parking spot already exists")
     for var, value in vars(parking_spot).items():
-        setattr(db_spot, var, value) if value else None
+        print(var,value)
+        setattr(db_spot, var, value) if value is not None else None
     db.add(db_spot)
     db.commit()
     db.refresh(db_spot)
@@ -71,7 +72,7 @@ def update_vehicle(request: Request, id: int,vehicle: schemas.VehicleCreate ,db:
     if not db_vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     for var, value in vars(vehicle).items():
-        setattr(db_vehicle, var, value) if value else None
+        setattr(db_vehicle, var, value) if value is not None else None
     print("here")
     db.commit()
     return db_vehicle
@@ -92,11 +93,35 @@ def get_vehicles(request:Request,db: Session):
 def get_vehicle_by_license_plate(db: Session, license_plate: str):
     return db.query(models.Vehicle).filter(models.Vehicle.license_plate == license_plate).first()
 
+def get_parking_sessions(db: Session):
+    return db.query(models.ParkingSession).all()
+
+def delete_parking_session(db: Session, session_id: int):
+    db_session = db.query(models.ParkingSession).filter(models.ParkingSession.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Parking session not found")
+    db.delete(db_session)
+    db.commit()
+    return JSONResponse(status_code=200, content={"message": "Parking session deleted"})
+
 def create_parking_session(db: Session, session: schemas.ParkingSessionCreate):
-    vehicle = get_vehicle_by_license_plate(db, session.license_plate)
-    session.vehicle_id = vehicle.id
-    db_session = models.ParkingSession(**session.model_dump())
+ 
+
+    best_spot = db.query(models.ParkingSpot).filter(
+        models.ParkingSpot.is_occupied == False,
+        models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type
+    ).order_by(models.ParkingSpot.exit_distance).first()
+
+    if not best_spot:
+        raise ValueError("No available parking spots")
+
+    best_spot.is_occupied = True
+    session.spot_id = best_spot.id
+
+    db_session = models.ParkingSession(**session.model_dump(exclude={'license_plate'}))
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
+
     return db_session
+
