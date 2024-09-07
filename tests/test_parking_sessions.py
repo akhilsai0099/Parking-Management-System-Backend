@@ -49,3 +49,9 @@ def test_get_parking_sessions(client: TestClient, auth_token: str):
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
+
+def test_delete_parking_session(client: TestClient, auth_token: str):
+    headers = {"Authorization": auth_token}
+    response = client.delete("/parking_sessions/1", headers=headers)
+    assert response.status_code == 200
+    assert response.json()["message"] == "Parking session deleted"
