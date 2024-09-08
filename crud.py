@@ -118,7 +118,7 @@ def create_parking_session(db: Session, session: schemas.ParkingSessionCreate):
     if vehicle:
         raise HTTPException(status_code=404, detail="Vehicle Didn't Previously exit")
     
-    if time_diff.total_seconds() / 3600 < 1:
+    if time_diff.total_seconds() / 3600 <= 1:
         best_spot = db.query(models.ParkingSpot).filter(
             models.ParkingSpot.is_occupied == False,
             models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type,

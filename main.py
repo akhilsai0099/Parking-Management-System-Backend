@@ -62,7 +62,7 @@ def get_logs():
 @app.get("/logs/")
 async def read_logs():
     logs = get_logs()
-    return Response(content='\n'.join(logs), media_type="text/plain")
+    return Response(content='\n'.join(logs[::-1]), media_type="text/plain")
 
 @app.post("/register/", response_model=schemas.UserCreate)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -164,11 +164,12 @@ def create_parking_session(session: schemas.ParkingSessionCreate, db: Session = 
         logger.info(f"Creating parking session {session.vehicle_id}")
         return JSONResponse(status_code=200, content={"message": "Parking session created"})
     except ValueError as e:
-        logger.error(f"{e.status_code}, {e.detail}")
+        logger.error(e)
         return JSONResponse(status_code=400, content={"message": str(e)})
     except HTTPException as e:
         logger.error(f"{e.status_code}, {e.detail}")
         return JSONResponse(status_code=e.status_code, content={"message": e.detail})
+    
 @app.delete("/parking_sessions/{session_id}")
 def delete_parking_session(session_id: int, db: Session = Depends(get_db)):
     try:
