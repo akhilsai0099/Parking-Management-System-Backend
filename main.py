@@ -104,3 +104,10 @@ def delete_parking_session(session_id: int, db: Session = Depends(get_db)):
 @app.get("/parking_sessions/", response_model=list[schemas.ParkingSession])
 def get_parking_sessions(db: Session = Depends(get_db)):
     return crud.get_parking_sessions(db=db)
+
+@app.put("/parking_sessions/{session_id}/price", response_model=schemas.Price)
+def calculate_price_and_exit(session_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.calculate_price_and_exit(db=db, session_id=session_id)
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": e.detail})

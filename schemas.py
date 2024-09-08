@@ -72,3 +72,6 @@ class ParkingSession(ParkingSessionBase):
 class Token(BaseModel):
     token: str
     role: bool
+
+class Price(BaseModel):
+    price: float

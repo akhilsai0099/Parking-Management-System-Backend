@@ -1,3 +1,4 @@
+import datetime
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -5,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi.exceptions import HTTPException
 import models, schemas
 from helpers.passwordHash import get_password_hash 
+import math
 
 def create_user(db: Session, user: schemas.UserCreate):
     user.password = get_password_hash(user.password)
@@ -79,7 +81,6 @@ def update_vehicle(request: Request, id: int,vehicle: schemas.VehicleCreate ,db:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     for var, value in vars(vehicle).items():
         setattr(db_vehicle, var, value) if value is not None else None
-    print("here")
     db.commit()
     return db_vehicle
 def delete_vehicle(request: Request, id: int ,db: Session):
@@ -148,3 +149,23 @@ def create_parking_session(db: Session, session: schemas.ParkingSessionCreate):
 
     return db_session
 
+def calculate_price_and_exit(db: Session, session_id: int):
+    db_session = db.query(models.ParkingSession).filter(models.ParkingSession.id == session_id).first()
+    if db_session.payment_status == "Paid":
+        return {"price": db_session.fee}
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Parking session not found")
+    total_minutes = (min(datetime.datetime.now(), db_session.expected_exit_time) - db_session.entry_time).total_seconds() / 60
+    total_quarters = math.ceil(total_minutes / 15)
+    price = total_quarters * 1
+    if datetime.datetime.now() > db_session.expected_exit_time:
+        extra_minutes = (datetime.datetime.now() - db_session.expected_exit_time).total_seconds() / 60
+        extra_quarters = math.ceil(extra_minutes / 15)
+        price += extra_quarters * 2
+    db_session.fee = price
+    db_session.payment_status = "Paid"
+    db_session.actual_exit_time = datetime.datetime.now()
+    spot = db.query(models.ParkingSpot).filter(models.ParkingSpot.id == db_session.spot_id).first()
+    spot.is_occupied = False
+    db.commit()
+    return {"price": price}
