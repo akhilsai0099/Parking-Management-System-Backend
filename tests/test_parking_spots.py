@@ -45,3 +45,20 @@ def test_delete_parking_spot(client: TestClient, auth_token:str):
     response = client.delete("/parking_spots/1", headers=headers)
     assert response.status_code == 200
     assert response.json() == {"message": "Parking spot deleted"}
+
+
+def test_get_parking_spots_by_level(client: TestClient, auth_token:str):
+    headers = {"Authorization": auth_token}
+    response = client.get("/parking_spots/availability/level/1", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert data[0]["level"] == 1
+
+def test_get_parking_spots_by_section(client: TestClient, auth_token:str):
+    headers = {"Authorization": auth_token}
+    response = client.get("/parking_spots/availability/section/A", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert data[0]["section"] == "A"
