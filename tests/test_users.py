@@ -35,4 +35,4 @@ def test_create_user_with_existing_email(client: TestClient, db_session: Session
     }
     response = client.post("/register/", json=user_data)
     assert response.status_code == 400
-    assert response.json() == {"detail": "Email already registered"}
+    assert response.json() == {"message": "Email already registered"}
