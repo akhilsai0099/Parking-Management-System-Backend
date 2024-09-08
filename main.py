@@ -64,6 +64,14 @@ def delete_parking_spot(spot_id: int, db: Session = Depends(get_db)):
 def read_parking_spots(db: Session = Depends(get_db)):
     return crud.get_parking_spots(db=db)
 
+@app.get("/parking_spots/availability/level/{level}", response_model=list[schemas.ParkingSpot])
+def read_parking_spots_by_level(level: int, db: Session = Depends(get_db)):
+    return crud.get_parking_spots_by_level(db=db, level=level)
+
+@app.get("/parking_spots/availability/section/{section}", response_model=list[schemas.ParkingSpot])
+def read_parking_spots_by_section(section: str, db: Session = Depends(get_db)):
+    return crud.get_parking_spots_by_section(db=db, section=section)
+
 @app.post("/vehicles/", response_model=schemas.Vehicle)
 def create_vehicle(request:Request, vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)):
     return crud.create_vehicle(request,db=db, vehicle=vehicle)
@@ -87,7 +95,8 @@ def create_parking_session(session: schemas.ParkingSessionCreate, db: Session = 
         return JSONResponse(status_code=200, content={"message": "Parking session created"})
     except ValueError as e:
         return JSONResponse(status_code=400, content={"message": str(e)})
-	
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"message": e.detail})
 @app.delete("/parking_sessions/{session_id}")
 def delete_parking_session(session_id: int, db: Session = Depends(get_db)):
     return crud.delete_parking_session(db=db, session_id=session_id)

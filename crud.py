@@ -56,6 +56,12 @@ def delete_parking_spot(db: Session, spot_id: int):
 def get_parking_spots(db: Session):
     return db.query(models.ParkingSpot).all()
 
+def get_parking_spots_by_level(db: Session, level: int):
+    return db.query(models.ParkingSpot).filter((models.ParkingSpot.level == level) & (models.ParkingSpot.is_occupied == False)).all()
+
+def get_parking_spots_by_section(db: Session, section: str):
+    return db.query(models.ParkingSpot).filter((models.ParkingSpot.section == section) & (models.ParkingSpot.is_occupied == False)).all()
+
 
 def create_vehicle(request: Request, db: Session, vehicle: schemas.VehicleCreate):
     user = get_user_by_email(db, request.state.curr_user)
@@ -105,12 +111,29 @@ def delete_parking_session(db: Session, session_id: int):
     return JSONResponse(status_code=200, content={"message": "Parking session deleted"})
 
 def create_parking_session(db: Session, session: schemas.ParkingSessionCreate):
- 
-
-    best_spot = db.query(models.ParkingSpot).filter(
-        models.ParkingSpot.is_occupied == False,
-        models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type
-    ).order_by(models.ParkingSpot.exit_distance).first()
+    time_diff = session.expected_exit_time - session.entry_time
+    vehicle = db.query(models.ParkingSession).filter(models.ParkingSession.vehicle_id == session.vehicle_id,
+                                                     models.ParkingSession.actual_exit_time == None).first()
+    if vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle Didn't Previously exit")
+    
+    if time_diff.total_seconds() / 3600 < 1:
+        best_spot = db.query(models.ParkingSpot).filter(
+            models.ParkingSpot.is_occupied == False,
+            models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type,
+            models.ParkingSpot.short_term_only == True
+        ).order_by(models.ParkingSpot.exit_distance).first()
+        if best_spot is None:
+            best_spot = db.query(models.ParkingSpot).filter(
+                models.ParkingSpot.is_occupied == False,
+                models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type
+            ).order_by(models.ParkingSpot.exit_distance).first()
+    else:
+        best_spot = db.query(models.ParkingSpot).filter(
+            models.ParkingSpot.is_occupied == False,
+            models.ParkingSpot.vehicle_type == db.query(models.Vehicle).filter(models.Vehicle.id == session.vehicle_id).first().vehicle_type,
+            models.ParkingSpot.short_term_only == False
+        ).order_by(models.ParkingSpot.exit_distance).first()
 
     if not best_spot:
         raise ValueError("No available parking spots")
@@ -118,7 +141,7 @@ def create_parking_session(db: Session, session: schemas.ParkingSessionCreate):
     best_spot.is_occupied = True
     session.spot_id = best_spot.id
 
-    db_session = models.ParkingSession(**session.model_dump(exclude={'license_plate'}))
+    db_session = models.ParkingSession(**session.model_dump())
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
