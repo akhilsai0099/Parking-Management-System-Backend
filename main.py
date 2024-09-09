@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse, Response
+import jwt
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 import  crud, schemas
@@ -10,7 +11,6 @@ from jwtToken import create_access_token
 from middleware import get_current_user
 import logging
 from logging.handlers import RotatingFileHandler
-
 
 init_db()
 
@@ -45,10 +45,15 @@ async def authMiddleware(request: Request, call_next):
     if request.url.path in ["/login/", "/register/"]:
         return await call_next(request)
     if "Authorization" in request.headers:
-        curr_user = get_current_user(request.headers["Authorization"].split(" ")[1])
+        try:
+            curr_user = get_current_user(request.headers["Authorization"].split(" ")[1])
+        except HTTPException as e:
+            logger.error(e)
+            return JSONResponse(status_code=e.status_code, content={"message": e.detail})
     else:
         logger.error("Unauthorized request")
         return JSONResponse(status_code=403, content={"message": "Unauthorized"})
+
     
     if curr_user:
         request.state.curr_user = curr_user
@@ -184,6 +189,11 @@ def delete_parking_session(session_id: int, db: Session = Depends(get_db)):
 def get_parking_sessions(db: Session = Depends(get_db)):
     logger.info(f"Fetching all parking sessions")
     return crud.get_parking_sessions(db=db)
+
+@app.get("/parking_sessions/revenue")
+def calculate_total_revenue(db: Session = Depends(get_db)):
+    logger.info("Calculating total revenue")
+    return crud.calculate_total_revenue(db=db)
 
 @app.put("/parking_sessions/{session_id}/price", response_model=schemas.Price)
 def calculate_price_and_exit(session_id: int, db: Session = Depends(get_db)):

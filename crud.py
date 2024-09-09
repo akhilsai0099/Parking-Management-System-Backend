@@ -169,3 +169,22 @@ def calculate_price_and_exit(db: Session, session_id: int):
     spot.is_occupied = False
     db.commit()
     return {"price": price}
+
+def calculate_total_revenue(db: Session):
+    total_revenue = 0
+    paid_sessions = db.query(models.ParkingSession).filter(models.ParkingSession.payment_status == "Paid").all()
+    expected_sessions = db.query(models.ParkingSession).filter(models.ParkingSession.payment_status != "Paid").all()
+    for session in paid_sessions:
+        total_revenue += session.fee
+    expected_revenue = 0
+    for session in expected_sessions:
+        total_minutes = (session.expected_exit_time - session.entry_time).total_seconds() / 60
+        total_quarters = math.ceil(total_minutes / 15)
+        price = total_quarters * 1
+        if datetime.datetime.now() > session.expected_exit_time:
+            extra_minutes = (datetime.datetime.now() - session.expected_exit_time).total_seconds() / 60
+            extra_quarters = math.ceil(extra_minutes / 15)
+            price += extra_quarters * 2
+        expected_revenue += price
+    return {"total_revenue": total_revenue, "expected_revenue": expected_revenue}
+
