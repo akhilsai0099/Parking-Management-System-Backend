@@ -1,0 +1,345 @@
+{
+	"info": {
+		"_postman_id": "a07827c7-126a-44b7-bc12-5cc61cdc6b43",
+		"name": "PAS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38149927"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// pm.globals.set(\"variable_key\", \"variable_value\");\r",
+							"pm.variables.set(pm.response.json()['token'].split(\" \")[1])"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"admin@gmail.com\",\r\n    \"password\":\"1234\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/login/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Vehicle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"license_plate\": \"XYZ1234\",\r\n  \"vehicle_type\": \"Car\",\r\n  \"owner_name\": \"John Doe\",\r\n  \"contact_number\": \"1234567890\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/vehicles/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"vehicles",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Parking_spot_creation",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImV4cCI6MTcyNTg4MzcwN30.ddd5OgtnZDgJ-l3JngTnfIqMFDStGdM0-ppCK-7LCyE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImV4cCI6MTcyNTg4MzcwN30.ddd5OgtnZDgJ-l3JngTnfIqMFDStGdM0-ppCK-7LCyE",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"level\": 1,\r\n  \"section\": \"A\",\r\n  \"spot_number\": 101,\r\n  \"vehicle_type\": \"Car\",\r\n  \"exit_distance\": 50,\r\n  \"short_term_only\": false,\r\n  \"is_occupied\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/parking_spots/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"parking_spots",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "vehicles Get",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/vehicles/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"vehicles",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get spots by section",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/parking_spots/availability/section/A",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"parking_spots",
+						"availability",
+						"section",
+						"A"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get spots by Level",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{token}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/parking_spots/availability/level/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"parking_spots",
+						"availability",
+						"level",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "edit vehicles",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwiZXhwIjoxNzI1NjU5MzcwfQ.3PPNw_1iYFqTxwCLDtzJYkqYp6eHjvJOjJFxlL12uiw",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\t\t\t\t\"license_plate\": \"Ap100\",\r\n\t\t\t\t\t\"vehicle_type\": \"Car\",\r\n\t\t\t\t\t\"owner_name\": \"hero\",\r\n\t\t\t\t\t\"contact_number\": \"1234\"\r\n\t\t\t\t}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/vehicles/6",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"vehicles",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Parking Session Creation",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"vehicle_id\": 1,\r\n    \"entry_time\": \"2024-09-09T12:00:00\",\r\n  \"expected_exit_time\": \"2024-09-09T12:00:00\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/parking_sessions/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"parking_sessions",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Exit Parking",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/parking_sessions/1/price",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"parking_sessions",
+						"1",
+						"price"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwiZXhwIjoxNzI1NzQ3NTkyfQ.SVostfMkuuIPpK0M3Ecaz8LHkyQHNs3Skx4z2DnMZqE",
+			"type": "string"
+		}
+	]
+}
